@@ -40,7 +40,7 @@ def create_task():
     task = {
         "title": data["title"].strip(),
         "done": False,
-        "created_at": datetime.datetime.utcnow().isoformat(),
+        "created_at": datetime.datetime.utcnow().isoformat() + "Z",
     }
     col = get_collection()
     result = col.insert_one(task)
@@ -59,7 +59,7 @@ def update_task(task_id):
     done = bool(data["done"])
     update = {"done": done}
     if done:
-        update["completed_at"] = datetime.datetime.utcnow().isoformat()
+        update["completed_at"] = datetime.datetime.utcnow().isoformat() + "Z"
     else:
         update["completed_at"] = None
     col.update_one({"_id": oid}, {"$set": update})
