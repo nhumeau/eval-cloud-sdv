@@ -2,37 +2,331 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Azure TODO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure TODO App</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 1rem; }
-    h1 { color: #0078d4; }
-    #task-form { display: flex; gap: 8px; margin-bottom: 1rem; }
-    #task-input { flex: 1; padding: 8px; font-size: 1rem; }
-    button { padding: 8px 16px; cursor: pointer; }
-    .task { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
-    .task.done span { text-decoration: line-through; color: #999; }
-    .del { background: #d13438; color: white; border: none; border-radius: 4px; }
-    #export-btn { margin-top: 1rem; background: #0078d4; color: white; border: none; border-radius: 4px; }
-    #export-result { margin-top: 8px; font-size: 0.85rem; word-break: break-all; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f3f2f1;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #323130;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+
+    header .logo {
+      width: 36px;
+      height: 36px;
+      background: #0078d4;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    header h1 { font-size: 1.5rem; font-weight: 600; color: #0078d4; }
+    header p { font-size: 0.8rem; color: #605e5c; margin-top: 1px; }
+
+    .stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: white;
+      border-radius: 8px;
+      padding: 12px 18px;
+      flex: 1;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    .stat .value { font-size: 1.6rem; font-weight: 700; color: #0078d4; }
+    .stat .label { font-size: 0.75rem; color: #605e5c; margin-top: 2px; }
+    .stat.done .value { color: #107c10; }
+    .stat.pending .value { color: #d83b01; }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      background: #f8f8f8;
+      border-bottom: 1px solid #edebe9;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #605e5c;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .task-form {
+      display: flex;
+      gap: 0;
+      padding: 16px;
+    }
+
+    .task-form input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      border: 1px solid #c8c6c4;
+      border-right: none;
+      border-radius: 6px 0 0 6px;
+      outline: none;
+      transition: border-color .15s;
+      font-family: inherit;
+    }
+
+    .task-form input:focus { border-color: #0078d4; }
+
+    .task-form button {
+      padding: 10px 20px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background .15s;
+    }
+
+    .task-form button:hover { background: #106ebe; }
+
+    #task-list { list-style: none; }
+
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid #f3f2f1;
+      transition: background .1s;
+    }
+
+    .task:last-child { border-bottom: none; }
+    .task:hover { background: #faf9f8; }
+
+    .task input[type=checkbox] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: #107c10;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-body { flex: 1; min-width: 0; }
+
+    .task-title {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      word-break: break-word;
+      transition: color .15s;
+    }
+
+    .task.done .task-title {
+      text-decoration: line-through;
+      color: #a19f9d;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .task-meta span {
+      font-size: 0.75rem;
+      color: #a19f9d;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .task-meta .completed { color: #107c10; }
+
+    .btn-delete {
+      background: none;
+      border: 1px solid #edebe9;
+      color: #a19f9d;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .15s;
+      font-family: inherit;
+    }
+
+    .btn-delete:hover { background: #fde7e9; border-color: #d13438; color: #d13438; }
+
+    .empty {
+      text-align: center;
+      padding: 2.5rem;
+      color: #a19f9d;
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px;
+    }
+
+    .btn-export {
+      padding: 9px 18px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background .15s;
+    }
+
+    .btn-export:hover { background: #106ebe; }
+    .btn-export:disabled { background: #c8c6c4; cursor: not-allowed; }
+
+    #export-result {
+      padding: 0 16px 16px;
+      font-size: 0.82rem;
+      color: #605e5c;
+    }
+
+    #export-result a { color: #0078d4; word-break: break-all; }
+    #export-result .error { color: #d13438; }
+
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #edebe9;
+    }
+
+    .filter-btn {
+      padding: 4px 12px;
+      border-radius: 12px;
+      border: 1px solid #edebe9;
+      background: white;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      color: #605e5c;
+      transition: all .15s;
+    }
+
+    .filter-btn.active {
+      background: #0078d4;
+      color: white;
+      border-color: #0078d4;
+    }
   </style>
 </head>
 <body>
-  <h1>Azure TODO App</h1>
-  <form id="task-form">
-    <input id="task-input" placeholder="Nouvelle tâche..." required>
-    <button type="submit">Ajouter</button>
-  </form>
-  <ul id="task-list" style="list-style:none;padding:0"></ul>
-  <button id="export-btn">Exporter vers Blob Storage</button>
-  <div id="export-result"></div>
+  <div class="container">
+    <header>
+      <div class="logo">Az</div>
+      <div>
+        <h1>Azure TODO App</h1>
+        <p>Cosmos DB · Key Vault · Blob Storage</p>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><div class="value" id="stat-total">0</div><div class="label">Total</div></div>
+      <div class="stat done"><div class="value" id="stat-done">0</div><div class="label">Terminées</div></div>
+      <div class="stat pending"><div class="value" id="stat-pending">0</div><div class="label">En cours</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Nouvelle tâche</div>
+      <form class="task-form" id="task-form">
+        <input id="task-input" placeholder="Ajouter une tâche..." required>
+        <button type="submit">Ajouter</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Toutes</button>
+        <button class="filter-btn" data-filter="pending">En cours</button>
+        <button class="filter-btn" data-filter="done">Terminées</button>
+      </div>
+      <ul id="task-list"></ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Export Blob Storage</div>
+      <div class="actions">
+        <button class="btn-export" id="export-btn">Exporter les tâches en JSON</button>
+      </div>
+      <div id="export-result"></div>
+    </div>
+  </div>
 
   <script>
-    async function loadTasks() {
-      const res = await fetch('/api/tasks');
-      const tasks = await res.json();
+    let allTasks = [];
+    let currentFilter = 'all';
+
+    function formatDate(iso) {
+      if (!iso) return null;
+      const d = new Date(iso);
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderTasks() {
       const ul = document.getElementById('task-list');
       ul.innerHTML = '';
-      tasks.forEach(t => {
+
+      const filtered = allTasks.filter(t => {
+        if (currentFilter === 'done') return t.done;
+        if (currentFilter === 'pending') return !t.done;
+        return true;
+      });
+
+      document.getElementById('stat-total').textContent = allTasks.length;
+      document.getElementById('stat-done').textContent = allTasks.filter(t => t.done).length;
+      document.getElementById('stat-pending').textContent = allTasks.filter(t => !t.done).length;
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'empty';
+        empty.textContent = currentFilter === 'done'
+          ? 'Aucune tâche terminée.'
+          : currentFilter === 'pending'
+          ? 'Toutes les tâches sont terminées !'
+          : 'Aucune tâche. Ajoutez-en une !';
+        ul.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(t => {
         const li = document.createElement('li');
         li.className = 'task' + (t.done ? ' done' : '');
 
@@ -41,19 +335,48 @@
         checkbox.checked = t.done;
         checkbox.addEventListener('change', () => toggleTask(t._id, checkbox.checked));
 
-        const span = document.createElement('span');
-        span.textContent = t.title;
+        const body = document.createElement('div');
+        body.className = 'task-body';
+
+        const title = document.createElement('div');
+        title.className = 'task-title';
+        title.textContent = t.title;
+
+        const meta = document.createElement('div');
+        meta.className = 'task-meta';
+
+        if (t.created_at) {
+          const created = document.createElement('span');
+          created.textContent = '📅 Créée le ' + formatDate(t.created_at);
+          meta.appendChild(created);
+        }
+
+        if (t.done && t.completed_at) {
+          const completed = document.createElement('span');
+          completed.className = 'completed';
+          completed.textContent = '✓ Résolue le ' + formatDate(t.completed_at);
+          meta.appendChild(completed);
+        }
+
+        body.appendChild(title);
+        body.appendChild(meta);
 
         const btn = document.createElement('button');
-        btn.className = 'del';
-        btn.textContent = 'X';
+        btn.className = 'btn-delete';
+        btn.textContent = 'Supprimer';
         btn.addEventListener('click', () => deleteTask(t._id));
 
         li.appendChild(checkbox);
-        li.appendChild(span);
+        li.appendChild(body);
         li.appendChild(btn);
         ul.appendChild(li);
       });
+    }
+
+    async function loadTasks() {
+      const res = await fetch('/api/tasks');
+      allTasks = await res.json();
+      renderTasks();
     }
 
     document.getElementById('task-form').addEventListener('submit', async e => {
@@ -61,8 +384,8 @@
       const input = document.getElementById('task-input');
       await fetch('/api/tasks', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({title: input.value})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: input.value })
       });
       input.value = '';
       loadTasks();
@@ -71,33 +394,56 @@
     async function toggleTask(id, done) {
       await fetch(`/api/tasks/${id}`, {
         method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({done})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ done })
       });
       loadTasks();
     }
 
     async function deleteTask(id) {
-      await fetch(`/api/tasks/${id}`, {method: 'DELETE'});
+      await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
       loadTasks();
     }
 
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTasks();
+      });
+    });
+
     document.getElementById('export-btn').addEventListener('click', async () => {
-      const res = await fetch('/api/export', {method: 'POST'});
-      const data = await res.json();
+      const btn = document.getElementById('export-btn');
+      btn.disabled = true;
+      btn.textContent = 'Export en cours...';
       const div = document.getElementById('export-result');
       div.innerHTML = '';
-      if (data.url) {
-        const a = document.createElement('a');
-        a.href = data.url;
-        a.target = '_blank';
-        a.textContent = data.blob_name;
-        const prefix = document.createTextNode('Export réussi : ');
-        div.appendChild(prefix);
-        div.appendChild(a);
-      } else {
-        div.textContent = 'Erreur export : ' + JSON.stringify(data);
+      try {
+        const res = await fetch('/api/export', { method: 'POST' });
+        const data = await res.json();
+        if (data.url) {
+          const a = document.createElement('a');
+          a.href = data.url;
+          a.target = '_blank';
+          a.textContent = data.blob_name;
+          div.appendChild(document.createTextNode('Export réussi : '));
+          div.appendChild(a);
+        } else {
+          const err = document.createElement('span');
+          err.className = 'error';
+          err.textContent = 'Erreur : ' + JSON.stringify(data);
+          div.appendChild(err);
+        }
+      } catch (e) {
+        const err = document.createElement('span');
+        err.className = 'error';
+        err.textContent = 'Erreur réseau : ' + e.message;
+        div.appendChild(err);
       }
+      btn.disabled = false;
+      btn.textContent = 'Exporter les tâches en JSON';
     });
 
     loadTasks();

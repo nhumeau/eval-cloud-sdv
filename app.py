@@ -56,7 +56,13 @@ def update_task(task_id):
     except InvalidId:
         return jsonify({"error": "invalid id"}), 400
     col = get_collection()
-    col.update_one({"_id": oid}, {"$set": {"done": bool(data["done"])}})
+    done = bool(data["done"])
+    update = {"done": done}
+    if done:
+        update["completed_at"] = datetime.datetime.utcnow().isoformat()
+    else:
+        update["completed_at"] = None
+    col.update_one({"_id": oid}, {"$set": update})
     return jsonify({"ok": True})
 
 
