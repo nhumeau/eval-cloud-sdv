@@ -179,6 +179,7 @@ L'IA (Claude) a été utilisée comme assistant tout au long du projet, sur troi
 - **Frontend** : génération et amélioration de l'interface HTML/JS (design Fluent UI, barre de stats, filtres, affichage des dates de création et de résolution, gestion des états vides, export blob).
 - **Backend** : aide à la structuration des routes Flask, gestion des erreurs (`InvalidId`, validation des entrées), ajout du champ `completed_at` lors de la résolution d'une tâche.
 - **Documentation Azure / commandes CLI** : l'IA a servi de référence pour construire et corriger les commandes `az` (création ACR, Cosmos DB, Key Vault avec RBAC, App Service avec Key Vault References, politique de lifecycle Blob Storage, gestion des Deployment Slots). Elle a notamment permis d'identifier rapidement les causes d'erreurs Azure (provider non enregistré, noms globalement uniques, restrictions de région sur Azure for Students).
+- **Rédaction** : aide à la rédaction de ce README (structure, justification des choix techniques, explication des services Azure).
 
 ## Limites rencontrées
 
