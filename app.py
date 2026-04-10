@@ -40,7 +40,7 @@ def create_task():
     task = {
         "title": data["title"].strip(),
         "done": False,
-        "created_at": datetime.datetime.utcnow().isoformat() + "Z",
+        "created_at": datetime.datetime.now().isoformat() + "Z",
     }
     col = get_collection()
     result = col.insert_one(task)
@@ -59,7 +59,7 @@ def update_task(task_id):
     done = bool(data["done"])
     update = {"done": done}
     if done:
-        update["completed_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+        update["completed_at"] = datetime.datetime.now().isoformat() + "Z"
     else:
         update["completed_at"] = None
     col.update_one({"_id": oid}, {"$set": update})
@@ -88,7 +88,7 @@ def export_to_blob():
 
     conn_str = os.environ["STORAGE_CONNECTION_STRING"]
     container = os.environ.get("BLOB_CONTAINER", "exports")
-    timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
     blob_name = f"export-{timestamp}.json"
 
     blob_client = BlobServiceClient.from_connection_string(conn_str)
