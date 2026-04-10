@@ -64,7 +64,15 @@ Slot staging : app-todo-dev-0229-staging.azurewebsites.net
 ```bash
 # Connexion et groupe de ressources
 az login
+az account show  # vérifier le bon abonnement
 az group create --name rg-todo-dev-swedencentral --location swedencentral
+
+# Enregistrement des providers (nécessaire sur abonnement étudiant)
+az provider register --namespace Microsoft.ContainerRegistry --wait
+az provider register --namespace Microsoft.DocumentDB --wait
+az provider register --namespace Microsoft.KeyVault --wait
+az provider register --namespace Microsoft.Web --wait
+az provider register --namespace Microsoft.Storage --wait
 
 # Azure Container Registry
 az acr create --name acrtododev --resource-group rg-todo-dev-swedencentral \
@@ -100,8 +108,10 @@ az keyvault secret set --vault-name kv-todo-0003 \
   --name cosmos-connection-string --value "$COSMOS_CONN"
 az webapp identity assign --name app-todo-dev-0229 \
   --resource-group rg-todo-dev-swedencentral
+PRINCIPAL_ID=$(az webapp identity show --name app-todo-dev-0229 \
+  --resource-group rg-todo-dev-swedencentral --query principalId -o tsv)
 az role assignment create --role "Key Vault Secrets User" \
-  --assignee <principalId> \
+  --assignee $PRINCIPAL_ID \
   --scope $(az keyvault show --name kv-todo-0003 --query id -o tsv)
 SECRET_URI=$(az keyvault secret show --vault-name kv-todo-0003 \
   --name cosmos-connection-string --query id -o tsv)
