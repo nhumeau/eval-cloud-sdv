@@ -172,6 +172,14 @@ Le slot `staging` permet de déployer et tester une nouvelle version de l'applic
 ### Scaling manuel
 Le nombre d'instances du plan App Service peut être modifié à chaud sans interruption de service (`--number-of-workers`). En production, cela permet d'absorber des pics de charge en augmentant temporairement les instances, puis de réduire pour limiter les coûts.
 
+## Utilisation de l'IA
+
+L'IA (Claude) a été utilisée comme assistant tout au long du projet, sur trois axes principaux :
+
+- **Frontend** : génération et amélioration de l'interface HTML/JS (design Fluent UI, barre de stats, filtres, affichage des dates de création et de résolution, gestion des états vides, export blob).
+- **Backend** : aide à la structuration des routes Flask, gestion des erreurs (`InvalidId`, validation des entrées), ajout du champ `completed_at` lors de la résolution d'une tâche.
+- **Documentation Azure / commandes CLI** : l'IA a servi de référence pour construire et corriger les commandes `az` (création ACR, Cosmos DB, Key Vault avec RBAC, App Service avec Key Vault References, politique de lifecycle Blob Storage, gestion des Deployment Slots). Elle a notamment permis d'identifier rapidement les causes d'erreurs Azure (provider non enregistré, noms globalement uniques, restrictions de région sur Azure for Students).
+
 ## Limites rencontrées
 
 - **Politique de région Azure for Students** : l'abonnement étudiant restreint les déploiements à 5 régions (swedencentral, spaincentral, germanywestcentral, italynorth, uaenorth). Switzerland North initialement prévue n'est pas autorisée.
