@@ -135,6 +135,24 @@ az storage account create --name sttododev \
 az storage container create --name exports \
   --account-name sttododev --public-access blob
 
+# Stocker la connection string Blob dans Key Vault
+STORAGE_CONN=$(az storage account show-connection-string \
+  --name sttododev \
+  --resource-group rg-todo-dev-swedencentral \
+  --query connectionString -o tsv)
+az keyvault secret set --vault-name kv-todo-0003 \
+  --name storage-connection-string --value "$STORAGE_CONN"
+STORAGE_SECRET_URI=$(az keyvault secret show --vault-name kv-todo-0003 \
+  --name storage-connection-string --query id -o tsv)
+
+# Injecter tous les App Settings dans l'App Service
+az webapp config appsettings set --name app-todo-dev-0229 \
+  --resource-group rg-todo-dev-swedencentral \
+  --settings \
+    WEBSITES_PORT=5000 \
+    BLOB_CONTAINER=exports \
+    STORAGE_CONNECTION_STRING="@Microsoft.KeyVault(SecretUri=$STORAGE_SECRET_URI)"
+
 # Politique de cycle de vie (Hot → Cool 30j → Archive 90j)
 az storage account management-policy create \
   --account-name sttododev \
