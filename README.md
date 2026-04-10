@@ -117,6 +117,16 @@ az webapp create --name app-todo-dev-0229 \
   --plan asp-todo \
   --deployment-container-image-name acrtododev.azurecr.io/todo-app:latest
 
+# Connexion App Service → ACR (credentials admin)
+ACR_PWD=$(az acr credential show --name acrtododev --query "passwords[0].value" -o tsv)
+az webapp config container set \
+  --name app-todo-dev-0229 \
+  --resource-group rg-todo-dev-swedencentral \
+  --container-image-name acrtododev.azurecr.io/todo-app:latest \
+  --container-registry-url https://acrtododev.azurecr.io \
+  --container-registry-user acrtododev \
+  --container-registry-password "$ACR_PWD"
+
 # Blob Storage
 az storage account create --name sttododev \
   --resource-group rg-todo-dev-swedencentral \
