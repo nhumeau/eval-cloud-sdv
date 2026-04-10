@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Azure TODO</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 1rem; }
+    h1 { color: #0078d4; }
+    #task-form { display: flex; gap: 8px; margin-bottom: 1rem; }
+    #task-input { flex: 1; padding: 8px; font-size: 1rem; }
+    button { padding: 8px 16px; cursor: pointer; }
+    .task { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .task.done span { text-decoration: line-through; color: #999; }
+    .del { background: #d13438; color: white; border: none; border-radius: 4px; }
+    #export-btn { margin-top: 1rem; background: #0078d4; color: white; border: none; border-radius: 4px; }
+    #export-result { margin-top: 8px; font-size: 0.85rem; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>Azure TODO App</h1>
+  <form id="task-form">
+    <input id="task-input" placeholder="Nouvelle tâche..." required>
+    <button type="submit">Ajouter</button>
+  </form>
+  <ul id="task-list" style="list-style:none;padding:0"></ul>
+  <button id="export-btn">Exporter vers Blob Storage</button>
+  <div id="export-result"></div>
+
+  <script>
+    async function loadTasks() {
+      const res = await fetch('/api/tasks');
+      const tasks = await res.json();
+      const ul = document.getElementById('task-list');
+      ul.innerHTML = '';
+      tasks.forEach(t => {
+        const li = document.createElement('li');
+        li.className = 'task' + (t.done ? ' done' : '');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = t.done;
+        checkbox.addEventListener('change', () => toggleTask(t._id, checkbox.checked));
+
+        const span = document.createElement('span');
+        span.textContent = t.title;
+
+        const btn = document.createElement('button');
+        btn.className = 'del';
+        btn.textContent = 'X';
+        btn.addEventListener('click', () => deleteTask(t._id));
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    }
+
+    document.getElementById('task-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const input = document.getElementById('task-input');
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title: input.value})
+      });
+      input.value = '';
+      loadTasks();
+    });
+
+    async function toggleTask(id, done) {
+      await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({done})
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`/api/tasks/${id}`, {method: 'DELETE'});
+      loadTasks();
+    }
+
+    document.getElementById('export-btn').addEventListener('click', async () => {
+      const res = await fetch('/api/export', {method: 'POST'});
+      const data = await res.json();
+      const div = document.getElementById('export-result');
+      div.innerHTML = '';
+      if (data.url) {
+        const a = document.createElement('a');
+        a.href = data.url;
+        a.target = '_blank';
+        a.textContent = data.blob_name;
+        const prefix = document.createTextNode('Export réussi : ');
+        div.appendChild(prefix);
+        div.appendChild(a);
+      } else {
+        div.textContent = 'Erreur export : ' + JSON.stringify(data);
+      }
+    });
+
+    loadTasks();
+  </script>
+</body>
+</html>
